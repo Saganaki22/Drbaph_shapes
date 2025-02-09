@@ -19,6 +19,9 @@ let bgRotation = 0;
 let backgroundColor = '#000000';
 let bgSpeed = 0.001;
 
+let lastTouchDistance = 0;
+let isTouchZooming = false;
+
 function setup() {
     canvas = createCanvas(windowWidth, windowHeight, WEBGL);
     canvas.parent('canvas-container');
@@ -48,6 +51,49 @@ function setup() {
     select('#bgSpeed').input(e => bgSpeed = parseFloat(e.target.value));
     select('#fullscreenBtn').mousePressed(toggleFullscreen);
     select('#savePNG').mousePressed(savePNGFile);
+
+    // Add touch event listeners for pinch zoom
+    canvas.elt.addEventListener('touchstart', handleTouchStart, false);
+    canvas.elt.addEventListener('touchmove', handleTouchMove, false);
+    canvas.elt.addEventListener('touchend', handleTouchEnd, false);
+}
+
+function handleTouchStart(event) {
+    if (event.touches.length === 2) {
+        // Calculate initial distance between two fingers
+        lastTouchDistance = getTouchDistance(event.touches);
+        isTouchZooming = true;
+        event.preventDefault();
+    }
+}
+
+function handleTouchMove(event) {
+    if (isTouchZooming && event.touches.length === 2) {
+        // Calculate new distance between fingers
+        const newDistance = getTouchDistance(event.touches);
+        
+        // Calculate zoom factor based on the change in distance
+        const zoomChange = (newDistance - lastTouchDistance) * 0.01;
+        zoomFactor = constrain(zoomFactor + zoomChange, 0.1, 5);
+        
+        lastTouchDistance = newDistance;
+        event.preventDefault();
+    }
+}
+
+function handleTouchEnd(event) {
+    if (event.touches.length < 2) {
+        isTouchZooming = false;
+    }
+}
+
+function getTouchDistance(touches) {
+    return dist(
+        touches[0].clientX,
+        touches[0].clientY,
+        touches[1].clientX,
+        touches[1].clientY
+    );
 }
 
 function initializeNodes() {
@@ -239,26 +285,148 @@ function toggleFullscreen() {
 function savePNGFile() {
     // Create a high-resolution canvas
     let tempCanvas = document.createElement('canvas');
-    const scale = 2; // Increase resolution by 2x
+    const pixelDensity = window.devicePixelRatio || 1;
+    const scale = Math.max(3, pixelDensity * 2); // At least 3x resolution, more on high-DPI devices
     tempCanvas.width = width * scale;
     tempCanvas.height = height * scale;
-    let tempCtx = tempCanvas.getContext('2d');
     
-    // Scale everything up for higher resolution
-    tempCtx.scale(scale, scale);
+    // Create a temporary WebGL canvas for high-quality rendering
+    let tempP5Canvas = createGraphics(tempCanvas.width, tempCanvas.height, WEBGL);
+    
+    // Copy current camera and rendering settings
+    tempP5Canvas.background(backgroundColor);
+    
+    // Draw background first
+    tempP5Canvas.push();
+    tempP5Canvas.translate(0, 0, -1000 * scale);
+    tempP5Canvas.rotateY(bgRotation);
+    tempP5Canvas.scale(scale * 2);
+    drawBackgroundToCanvas(tempP5Canvas);
+    tempP5Canvas.pop();
+    
+    // Draw main shape
+    tempP5Canvas.push();
+    if (autoRotate) {
+        tempP5Canvas.rotateX(time);
+        tempP5Canvas.rotateY(time * 0.6);
+    }
+    
+    tempP5Canvas.rotateX(radians(rotX));
+    tempP5Canvas.rotateY(radians(rotY));
+    tempP5Canvas.rotateZ(radians(rotZ));
+    
+    tempP5Canvas.scale(currentScale * zoomFactor * scale);
+    
+    if (showGrid) {
+        drawGridToCanvas(tempP5Canvas);
+    }
+    
+    drawShapeToCanvas(tempP5Canvas);
+    tempP5Canvas.pop();
+    
+    // Get the 2D context for adding copyright
+    let tempCtx = tempCanvas.getContext('2d');
     
     // Enable high-quality image scaling
     tempCtx.imageSmoothingEnabled = true;
     tempCtx.imageSmoothingQuality = 'high';
     
-    // Draw the main canvas content
-    tempCtx.drawImage(canvas.elt, 0, 0, width, height);
+    // Draw the WebGL canvas content to the 2D canvas
+    tempCtx.drawImage(tempP5Canvas.elt, 0, 0);
+    
+    // Determine if we're on mobile (check both width and aspect ratio)
+    const isMobile = window.innerWidth <= 768 || (window.innerWidth / window.innerHeight < 9/16);
+    
+    // Scale the copyright text based on the canvas size and device
+    const baseFontSize = isMobile ? 13 : 17; // 4px smaller on mobile
+    const scaledFontSize = Math.round(baseFontSize * scale);
+    const scaledYOffset = Math.round(30 * scale);
     
     // Add copyright with stroke and shadow for exported content only
-    drawCopyrightText(tempCtx, width/2, height - 20);
+    drawCopyrightText(tempCtx, tempCanvas.width/2, tempCanvas.height - scaledYOffset, scaledFontSize);
     
-    // Save the high-resolution image with new filename
+    // Save the high-resolution image
     saveCanvas(tempCanvas, 'drbaph-HD', 'png');
+}
+
+// Helper function to draw background to a specific canvas
+function drawBackgroundToCanvas(targetCanvas) {
+    // Draw connections between nodes
+    for (let i = 0; i < nodes.length; i++) {
+        let nodeA = nodes[i];
+        for (let j = i + 1; j < nodes.length; j++) {
+            let nodeB = nodes[j];
+            let d = dist(nodeA.x, nodeA.y, nodeA.z, nodeB.x, nodeB.y, nodeB.z);
+            
+            if (d < maxDist && d > minDist) {
+                let currentColor = color(select('#strokeColor').value());
+                currentColor.setAlpha(map(d, minDist, maxDist, 255, 50));
+                targetCanvas.stroke(currentColor);
+                targetCanvas.strokeWeight(0.5);
+                targetCanvas.line(nodeA.x, nodeA.y, nodeA.z, nodeB.x, nodeB.y, nodeB.z);
+            }
+        }
+    }
+    
+    // Draw nodes
+    for (let node of nodes) {
+        targetCanvas.push();
+        targetCanvas.translate(node.x, node.y, node.z);
+        targetCanvas.noStroke();
+        let currentColor = color(select('#strokeColor').value());
+        currentColor.setAlpha(150);
+        targetCanvas.fill(currentColor);
+        targetCanvas.sphere(1.5);
+        targetCanvas.pop();
+    }
+}
+
+// Helper function to draw shape to a specific canvas
+function drawShapeToCanvas(targetCanvas) {
+    targetCanvas.noFill();
+    targetCanvas.stroke(select('#strokeColor').value());
+    targetCanvas.strokeWeight(strokeThickness);
+    
+    switch(currentShape) {
+        case 'cube':
+            targetCanvas.box(100);
+            break;
+        case 'sphere':
+            targetCanvas.sphere(50, 16, 16);
+            break;
+        case 'torus':
+            targetCanvas.torus(40, 20, 24, 16);
+            break;
+        case 'cone':
+            targetCanvas.cone(50, 100, 16, 8);
+            break;
+        case 'cylinder':
+            drawCylinderToCanvas(targetCanvas);
+            break;
+        case 'triangularPyramid':
+            drawTriangularPyramidToCanvas(targetCanvas);
+            break;
+        case 'hexagonalPrism':
+            drawHexagonalPrismToCanvas(targetCanvas);
+            break;
+        case 'icosahedron':
+            drawIcosahedronToCanvas(targetCanvas);
+            break;
+        // Add other shape cases as needed
+    }
+}
+
+// Helper function to draw grid to a specific canvas
+function drawGridToCanvas(targetCanvas) {
+    targetCanvas.stroke(100);
+    targetCanvas.strokeWeight(0.5);
+    let size = 100;
+    let step = 20;
+    
+    for (let x = -size; x <= size; x += step) {
+        targetCanvas.line(x, -size, 0, x, size, 0);
+        targetCanvas.line(-size, x, 0, size, x, 0);
+    }
 }
 
 function mouseWheel(event) {
@@ -682,28 +850,31 @@ function createFractal(depth, x, y, size) {
 
 // Function to draw copyright text on exported content
 function drawCopyrightText(ctx, x, y, fontSize = 14) {
-    ctx.font = `${fontSize}px Arial`;
+    ctx.save();
+    
+    // Calculate stroke width based on font size
+    const strokeWidth = Math.max(2, Math.round(fontSize * 0.1));
+    
+    // Add shadow
+    ctx.shadowBlur = Math.round(fontSize * 0.3);
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+    ctx.shadowOffsetX = Math.round(fontSize * 0.15);
+    ctx.shadowOffsetY = Math.round(fontSize * 0.15);
+    
+    // Text settings
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
+    ctx.lineWidth = strokeWidth;
+    ctx.font = `bold ${fontSize}px Arial`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'bottom';
     
-    // Add drop shadow
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-    ctx.shadowBlur = 4;
-    ctx.shadowOffsetX = 2;
-    ctx.shadowOffsetY = 2;
+    const text = document.getElementById('copyright').textContent;
     
-    // Add black stroke
-    ctx.strokeStyle = '#000000';
-    ctx.lineWidth = 2;
-    ctx.strokeText("Copyright 2025 DrBaph, UK. All rights reserved.", x, y);
+    // Draw stroke first
+    ctx.strokeText(text, x, y);
+    // Then fill
+    ctx.fillText(text, x, y);
     
-    // Add white text
-    ctx.fillStyle = 'white';
-    ctx.fillText("Copyright 2025 DrBaph, UK. All rights reserved.", x, y);
-    
-    // Reset shadow
-    ctx.shadowColor = 'transparent';
-    ctx.shadowBlur = 0;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
+    ctx.restore();
 }
