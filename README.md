@@ -1,6 +1,6 @@
 # 3D Wireframe Shapes Visualizer
 
-[wireframe-recording (16).webm](https://github.com/user-attachments/assets/2f5a9ef9-4d4f-430d-9a99-4ce3d506884b)
+![ezgif-19d92963ee8272](https://github.com/user-attachments/assets/660b35b2-88aa-4c1f-afa7-688863965406)
 
 An interactive web-based 3D shape visualization tool that renders various geometric shapes in a wireframe style with a dynamic matrix background effect.
 
@@ -92,7 +92,7 @@ This project is available under the **Apache License 2.0**.
 
 ![wireframe (8)](https://github.com/user-attachments/assets/046e29aa-aa06-4763-a905-70b1d18553e4)
 
-![ezgif-19d92963ee8272](https://github.com/user-attachments/assets/660b35b2-88aa-4c1f-afa7-688863965406)
+[wireframe-recording (16).webm](https://github.com/user-attachments/assets/2f5a9ef9-4d4f-430d-9a99-4ce3d506884b)
 
 https://github.com/user-attachments/assets/bbec472e-f12f-4af0-9fca-01491c479e5c
 
