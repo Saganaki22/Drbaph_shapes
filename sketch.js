@@ -283,65 +283,95 @@ function toggleFullscreen() {
 }
 
 function savePNGFile() {
-    // Create a temporary canvas with current viewport dimensions
-    let tempCanvas = document.createElement('canvas');
-    const pixelDensity = window.devicePixelRatio || 1;
-    const scale = Math.max(2, pixelDensity * 1.5);
-    tempCanvas.width = width * scale;
-    tempCanvas.height = height * scale;
+    const isMobile = window.innerWidth <= 768 || (window.innerWidth / window.innerHeight < 9/16);
     
-    // Create a temporary WebGL canvas for high-quality rendering
-    let tempP5Canvas = createGraphics(tempCanvas.width, tempCanvas.height, WEBGL);
-    
-    // Match the camera settings of the main canvas
-    const fov = PI/3;
-    const cameraZ = (tempCanvas.height/2.0) / tan(fov/2.0);
-    tempP5Canvas.perspective(fov, tempCanvas.width/tempCanvas.height, cameraZ/10.0, cameraZ*10.0);
-    
-    // Set background
-    tempP5Canvas.background(backgroundColor);
-    
-    // Draw background with current rotation
-    tempP5Canvas.push();
-    tempP5Canvas.translate(0, 0, -1000);
-    tempP5Canvas.scale(scale);
-    tempP5Canvas.rotateY(bgRotation);
-    drawBackgroundToCanvas(tempP5Canvas);
-    tempP5Canvas.pop();
-    
-    // Draw shape with current rotation and zoom
-    tempP5Canvas.push();
-    // Apply current rotations
-    tempP5Canvas.rotateX(radians(rotX));
-    tempP5Canvas.rotateY(radians(rotY));
-    tempP5Canvas.rotateZ(radians(rotZ));
-    
-    if (autoRotate) {
-        tempP5Canvas.rotateX(time);
-        tempP5Canvas.rotateY(time * 0.6);
+    if (isMobile) {
+        // Get the current WebGL canvas
+        const mainCanvas = document.getElementById('defaultCanvas0');
+        
+        // Create a temporary canvas at exactly the same size as the current view
+        let tempCanvas = document.createElement('canvas');
+        tempCanvas.width = width;
+        tempCanvas.height = height;
+        let ctx = tempCanvas.getContext('2d');
+        
+        // Fill with current background color
+        ctx.fillStyle = backgroundColor;
+        ctx.fillRect(0, 0, width, height);
+        
+        // Draw the current canvas view exactly as is
+        ctx.drawImage(mainCanvas, 0, 0);
+        
+        // Add copyright text
+        const fontSize = Math.round(16);
+        ctx.font = `${fontSize}px Arial`;
+        ctx.fillStyle = select('#strokeColor').value();
+        ctx.textAlign = 'center';
+        ctx.fillText('Copyright 2025 DrBaph, UK. All rights reserved.', width/2, height - 20);
+        
+        // Save the image
+        saveCanvas(tempCanvas, 'drbaph-HD', 'png');
+    } else {
+        // Desktop version with high resolution
+        let tempCanvas = document.createElement('canvas');
+        const pixelDensity = window.devicePixelRatio || 1;
+        const scale = Math.max(2, pixelDensity * 1.5);
+        tempCanvas.width = width * scale;
+        tempCanvas.height = height * scale;
+        
+        // Create a temporary WebGL canvas for high-quality rendering
+        let tempP5Canvas = createGraphics(tempCanvas.width, tempCanvas.height, WEBGL);
+        
+        // Match the camera settings of the main canvas
+        const fov = PI/3;
+        const cameraZ = (tempCanvas.height/2.0) / tan(fov/2.0);
+        tempP5Canvas.perspective(fov, tempCanvas.width/tempCanvas.height, cameraZ/10.0, cameraZ*10.0);
+        
+        // Set background
+        tempP5Canvas.background(backgroundColor);
+        
+        // Draw background with current rotation
+        tempP5Canvas.push();
+        tempP5Canvas.translate(0, 0, -1000);
+        tempP5Canvas.scale(scale);
+        tempP5Canvas.rotateY(bgRotation);
+        drawBackgroundToCanvas(tempP5Canvas);
+        tempP5Canvas.pop();
+        
+        // Draw shape with current rotation and zoom
+        tempP5Canvas.push();
+        // Apply current rotations
+        tempP5Canvas.rotateX(radians(rotX));
+        tempP5Canvas.rotateY(radians(rotY));
+        tempP5Canvas.rotateZ(radians(rotZ));
+        
+        if (autoRotate) {
+            tempP5Canvas.rotateX(time);
+            tempP5Canvas.rotateY(time * 0.6);
+        }
+        
+        // Apply current scale and zoom
+        tempP5Canvas.scale(currentScale * zoomFactor * scale);
+        
+        if (showGrid) {
+            drawGridToCanvas(tempP5Canvas);
+        }
+        drawShapeToCanvas(tempP5Canvas);
+        tempP5Canvas.pop();
+        
+        // Get 2D context and draw
+        let tempCtx = tempCanvas.getContext('2d');
+        tempCtx.fillStyle = backgroundColor;
+        tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+        tempCtx.drawImage(tempP5Canvas.elt, 0, 0);
+        
+        // Add copyright text
+        const fontSize = Math.round(17 * scale);
+        drawCopyrightText(tempCtx, tempCanvas.width/2, tempCanvas.height - Math.round(30 * scale), fontSize);
+        
+        // Save image
+        saveCanvas(tempCanvas, 'drbaph-HD', 'png');
     }
-    
-    // Apply current scale and zoom
-    tempP5Canvas.scale(currentScale * zoomFactor * scale);
-    
-    if (showGrid) {
-        drawGridToCanvas(tempP5Canvas);
-    }
-    drawShapeToCanvas(tempP5Canvas);
-    tempP5Canvas.pop();
-    
-    // Get 2D context and draw
-    let tempCtx = tempCanvas.getContext('2d');
-    tempCtx.fillStyle = backgroundColor;
-    tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-    tempCtx.drawImage(tempP5Canvas.elt, 0, 0);
-    
-    // Add copyright text
-    const fontSize = Math.round(17 * scale);
-    drawCopyrightText(tempCtx, tempCanvas.width/2, tempCanvas.height - Math.round(30 * scale), fontSize);
-    
-    // Save image
-    saveCanvas(tempCanvas, 'drbaph-HD', 'png');
 }
 
 // Helper function to draw background to a specific canvas
