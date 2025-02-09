@@ -296,6 +296,9 @@ function savePNGFile() {
     // Create a temporary WebGL canvas for high-quality rendering
     let tempP5Canvas = createGraphics(tempCanvas.width, tempCanvas.height, WEBGL);
     
+    // Set background color and clear with it
+    tempP5Canvas.background(backgroundColor);
+    
     if (isMobile) {
         // For mobile: Use exact current viewport settings
         tempP5Canvas.perspective(PI/3, tempCanvas.width/tempCanvas.height, 0.1, 10000);
@@ -367,6 +370,10 @@ function savePNGFile() {
     // Get the 2D context for adding copyright
     let tempCtx = tempCanvas.getContext('2d');
     
+    // Fill with background color first
+    tempCtx.fillStyle = backgroundColor;
+    tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+    
     // Enable high-quality image scaling
     tempCtx.imageSmoothingEnabled = true;
     tempCtx.imageSmoothingQuality = 'high';
@@ -375,9 +382,9 @@ function savePNGFile() {
     tempCtx.drawImage(tempP5Canvas.elt, 0, 0);
     
     // Scale the copyright text based on the canvas size and device
-    const baseFontSize = isMobile ? 20 : 17;
-    const scaledFontSize = Math.round(baseFontSize * scale);
-    const scaledYOffset = Math.round(30 * scale);
+    const baseFontSize = isMobile ? 24 : 17; // Reduced from 28 to 24 for mobile
+    const scaledFontSize = Math.round(baseFontSize * (isMobile ? 1 : scale)); // Don't scale mobile font
+    const scaledYOffset = Math.round(40 * (isMobile ? 1 : scale)); // Adjusted padding for mobile
     
     // Add copyright with stroke and shadow for exported content only
     drawCopyrightText(tempCtx, tempCanvas.width/2, tempCanvas.height - scaledYOffset, scaledFontSize);
