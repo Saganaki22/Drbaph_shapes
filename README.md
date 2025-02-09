@@ -6,11 +6,19 @@ An interactive web-based 3D shape visualization tool that renders various geomet
 
 ---
 
+### 📝Updates (0.2)
+[09/02/2025] <br>
+
+✅ Optimized design for phones<br>
+✅ Optimized logic for responsive design<be>
+<br>
+<be>
+
 ## 🚀 Features
 
 ### 🎨 Multiple 3D Shapes
 - **Basic Shapes:** Cube, Sphere, Cone, Cylinder
-- **Complex Shapes:** Torus, Triangular Pyramid, Hexagonal Prism
+- **Complex Shapes:** Torus, Triangular Pyramid, Hexagonal Prism, Icosahedron
 - **Mathematical Surfaces:** Schwarz Surface, Gyroid Surface, Hyperboloid, Möbius Strip
 
 ### 🕹️ Interactive Controls
@@ -29,7 +37,8 @@ An interactive web-based 3D shape visualization tool that renders various geomet
 ### 🖥️ Additional Features
 - Fullscreen Mode Support
 - Dynamic Matrix-Style intro
-- Animated node Background
+- Animated Node Background
+- Responsive Design
 
 ---
 
