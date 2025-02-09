@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>3D Wireframe Shapes</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
@@ -49,7 +50,6 @@
                 <button id="recordButton">Start Recording</button>
             </div>
         </div>
-        <div id="recording-status"></div>
         <div id="recording-indicator"></div>
         <div id="copyright">Copyright 2025 DrBaph, UK. All rights reserved.</div>
     </div>
@@ -165,7 +165,6 @@
             let recordedChunks = [];
             let animationFrameId = null;
             const recordButton = document.getElementById('recordButton');
-            const recordingStatus = document.getElementById('recording-status');
             const recordingIndicator = document.getElementById('recording-indicator');
             const copyright = document.getElementById('copyright');
 
@@ -185,15 +184,14 @@
             function startRecording() {
                 const canvas = document.querySelector('#defaultCanvas0');
                 if (!canvas) {
-                    recordingStatus.textContent = 'Error: Canvas not found';
+                    console.error('Error: Canvas not found');
                     return;
                 }
 
-                // Create HD canvas with correct aspect ratio
+                // Create high-res canvas at 1.5x scale
                 const recordingCanvas = document.createElement('canvas');
-                const aspectRatio = canvas.width / canvas.height;
-                recordingCanvas.height = 1080; // Base height for HD
-                recordingCanvas.width = Math.round(recordingCanvas.height * aspectRatio); // Maintain aspect ratio
+                recordingCanvas.width = canvas.width * 1.5;
+                recordingCanvas.height = canvas.height * 1.5;
                 const recordingCtx = recordingCanvas.getContext('2d', {
                     alpha: false
                 });
@@ -209,29 +207,29 @@
                     recordingCtx.fillStyle = '#000000';
                     recordingCtx.fillRect(0, 0, recordingCanvas.width, recordingCanvas.height);
                     
-                    // Draw main content
+                    // Draw main content at 1.5x scale
                     recordingCtx.drawImage(canvas, 0, 0, recordingCanvas.width, recordingCanvas.height);
                     
                     // Add copyright text centered at bottom with stroke and shadow
                     recordingCtx.save();
                     
                     // Add shadow
-                    recordingCtx.shadowBlur = 4;
+                    recordingCtx.shadowBlur = 6; // Increased for higher resolution
                     recordingCtx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-                    recordingCtx.shadowOffsetX = 2;
-                    recordingCtx.shadowOffsetY = 2;
+                    recordingCtx.shadowOffsetX = 3; // Increased for higher resolution
+                    recordingCtx.shadowOffsetY = 3; // Increased for higher resolution
                     
                     // Text settings
                     recordingCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
                     recordingCtx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
                     recordingCtx.lineWidth = 2;
-                    recordingCtx.font = 'bold 24px Arial';
+                    recordingCtx.font = 'bold 17px Arial';
                     recordingCtx.textAlign = 'center';
                     recordingCtx.textBaseline = 'bottom';
                     
                     const text = copyright.textContent;
                     const x = recordingCanvas.width / 2;
-                    const y = recordingCanvas.height - 20;
+                    const y = recordingCanvas.height - 25;
                     
                     // Draw stroke first
                     recordingCtx.strokeText(text, x, y);
@@ -301,7 +299,7 @@
                         // Ensure we have data
                         if (recordedChunks.length === 0) {
                             console.error('No chunks recorded');
-                            recordingStatus.textContent = 'Error: No data recorded';
+                            console.error('Error: No data recorded');
                             return;
                         }
 
@@ -323,14 +321,10 @@
                                 URL.revokeObjectURL(url);
                             }, 100);
 
-                            recordingStatus.textContent = 'Recording saved!';
+                            console.log('Recording saved!');
                         } else {
-                            recordingStatus.textContent = 'Error: Recording failed';
+                            console.error('Error: Recording failed');
                         }
-
-                        setTimeout(() => {
-                            recordingStatus.textContent = '';
-                        }, 3000);
 
                         // Reset button state
                         recordButton.textContent = 'Start Recording';
@@ -352,11 +346,10 @@
                     recordButton.textContent = 'Stop Recording';
                     recordButton.classList.add('recording');
                     recordingIndicator.classList.add('active');
-                    recordingStatus.textContent = 'Recording...';
 
                 } catch (error) {
                     console.error('Recording setup failed:', error);
-                    recordingStatus.textContent = 'Error: Recording failed to start - ' + error.message;
+                    console.error('Error: Recording failed to start - ' + error.message);
                 }
             }
 
