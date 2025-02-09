@@ -11,20 +11,20 @@ body {
 #controls {
     position: fixed;
     left: 20px;
-    top: 71px; /* Increased by 7 more pixels */
+    top: 81px;
     background: rgba(0, 0, 0, 0.8);
-    padding: 20px;
+    padding: clamp(10px, 2vw, 20px);
     border-radius: 10px;
     color: white;
     z-index: 10001;
     transform: translateX(0);
     transition: transform 0.3s ease-in-out;
-    width: 250px;
+    width: clamp(200px, 25vw, 300px);
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
 #controls.controls-hidden {
-    transform: translateX(-310px); /* Increased to ensure complete hiding */
+    transform: translateX(-400px);
 }
 
 .toggle-controls {
@@ -35,10 +35,10 @@ body {
     background: rgba(0, 0, 0, 0.8);
     color: white;
     border: none;
-    padding: 8px 12px;
+    padding: clamp(6px, 1vw, 12px) clamp(8px, 1.5vw, 16px);
     border-radius: 5px;
     cursor: pointer;
-    font-size: 20px;
+    font-size: clamp(16px, 2vw, 20px);
     transition: transform 0.3s ease-in-out;
     outline: none;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
@@ -53,21 +53,24 @@ body {
 }
 
 .slider-group, .toggle-group, .button-group {
-    margin: 15px 0;
+    margin: clamp(10px, 2vw, 20px) 0;
 }
 
 label {
     display: block;
-    margin: 10px 0;
+    margin: clamp(8px, 1.5vw, 15px) 0;
+    font-size: clamp(12px, 1.5vw, 14px);
 }
 
 input[type="range"] {
     width: 100%;
+    height: clamp(15px, 2vw, 25px);
 }
 
 select {
     width: 100%;
-    padding: 5px;
+    padding: clamp(4px, 1vw, 8px);
+    font-size: clamp(12px, 1.5vw, 14px);
     background: #333;
     color: white;
     border: 1px solid #444;
@@ -75,8 +78,9 @@ select {
 }
 
 button {
-    margin: 5px;
-    padding: 8px 15px;
+    margin: clamp(3px, 0.8vw, 5px);
+    padding: clamp(6px, 1vw, 12px) clamp(10px, 1.5vw, 20px);
+    font-size: clamp(12px, 1.5vw, 14px);
     background: #444;
     color: white;
     border: none;
@@ -175,27 +179,6 @@ button:hover {
     visibility: visible;
 }
 
-#recording-status {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: rgba(0, 0, 0, 0.8);
-    padding: 10px 20px;
-    border-radius: 5px;
-    z-index: 10001;
-    display: none;
-}
-
-#recording-status.active {
-    display: block;
-    animation: blink 1s infinite;
-}
-
-@keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-}
-
 #canvas-container {
     position: fixed;
     top: 0;
@@ -210,13 +193,17 @@ button:hover {
     bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
-    color: white;
     font-size: 14px;
     font-family: Arial, sans-serif;
     z-index: 10000;
     text-align: center;
     pointer-events: none;
-    text-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+    color: #ffffff;
+    text-shadow: -1px -1px 0 #000,
+                 1px -1px 0 #000,
+                 -1px 1px 0 #000,
+                 1px 1px 0 #000,
+                 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 /* Recording button styles */
@@ -243,8 +230,8 @@ button:hover {
     position: fixed;
     top: 20px;
     right: 20px;
-    width: 20px;
-    height: 20px;
+    width: 30px;  
+    height: 30px; 
     border-radius: 50%;
     background-color: #ff3333;
     opacity: 0;
@@ -255,12 +242,12 @@ button:hover {
 #recording-indicator::after {
     content: 'REC';
     position: absolute;
-    top: 25px;
+    top: 35px;  
     left: 50%;
     transform: translateX(-50%);
     color: #ff3333;
     font-weight: bold;
-    font-size: 14px;
+    font-size: 18px;  
     white-space: nowrap;
 }
 
@@ -281,5 +268,193 @@ button:hover {
     }
     100% {
         opacity: 0;
+    }
+}
+
+/* Media queries for responsive design */
+/* Portrait phone screens (9:16 aspect ratio) */
+@media screen and (max-aspect-ratio: 9/16) {
+    #controls {
+        width: 90%;  /* Wider for narrow screens */
+        max-width: 300px;
+        left: 50%;
+        transform: translateX(-50%);
+        top: auto;
+        bottom: 66px;
+        padding: 15px;
+        background: rgba(0, 0, 0, 0.7);
+    }
+
+    #controls.controls-hidden {
+        transform: translate(-50%, 150%);
+    }
+
+    .toggle-controls {
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 20px;
+        top: auto;
+        z-index: 10003;
+        padding: 10px 20px;
+        border-radius: 20px;
+        font-size: 16px;
+        width: 120px;
+        text-align: center;
+    }
+
+    .toggle-controls.active {
+        transform: translateX(-50%) rotate(180deg);
+    }
+
+    /* Optimize controls for narrow screens */
+    #controls input[type="range"] {
+        width: 100%;
+        margin: 8px 0;
+    }
+
+    #controls select {
+        width: 100%;
+        margin: 8px 0;
+    }
+
+    .button-group {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .button-group button {
+        width: 100%;
+        margin: 0;
+    }
+}
+
+/* Regular mobile styles (now as fallback) */
+@media screen and (max-width: 768px) {
+    #controls {
+        width: 80%;
+        max-width: 300px;
+        left: 50%;
+        transform: translateX(-50%);
+        top: auto;
+        bottom: 66px;
+        padding: 15px;
+        background: rgba(0, 0, 0, 0.7);
+    }
+
+    #controls input[type="range"],
+    #controls input[type="color"],
+    #controls select,
+    #controls button {
+        background-color: rgba(68, 68, 68, 0.9);  /* Slightly opaque controls */
+    }
+
+    #controls.controls-hidden {
+        transform: translate(-50%, 150%);  /* Slide straight down while maintaining horizontal center */
+    }
+
+    .toggle-controls {
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 20px;
+        top: auto;
+        z-index: 10003;
+        padding: 10px 20px;
+        border-radius: 20px;
+        font-size: 16px;
+        width: 120px;
+        text-align: center;
+    }
+
+    .toggle-controls.active {
+        transform: translateX(-50%) rotate(180deg);
+    }
+
+    /* Optimize sliders and inputs for touch */
+    input[type="range"] {
+        height: 25px;  /* Larger touch target */
+        margin: 10px 0;
+    }
+
+    input[type="color"] {
+        width: 60px;
+        height: 40px;
+        padding: 0;
+        border: none;
+    }
+
+    select {
+        height: 40px;
+        font-size: 16px;  /* Prevent zoom on iOS */
+    }
+
+    label {
+        font-size: 14px;
+        margin: 15px 0 5px 0;
+        display: block;
+    }
+
+    .button-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    .button-group button {
+        width: 100%;
+        height: 40px;
+        margin: 0;
+        font-size: 14px;
+    }
+
+    #fullscreenBtn {
+        grid-column: 1 / -1;  /* Full width */
+    }
+
+    /* Adjust copyright position */
+    #copyright {
+        bottom: 80px;  /* Move up to avoid overlap with controls toggle */
+        font-size: 12px;
+        width: 90%;
+        margin: 0 auto;
+    }
+}
+
+/* Additional tweaks for very small screens */
+@media screen and (max-width: 380px) {
+    #controls {
+        width: 90%;
+        padding: 10px;
+    }
+
+    .button-group {
+        grid-template-columns: 1fr;  /* Stack buttons on very small screens */
+    }
+
+    label {
+        font-size: 12px;
+    }
+
+    input[type="range"] {
+        height: 20px;
+    }
+}
+
+/* Handle landscape orientation on mobile */
+@media screen and (max-height: 500px) and (orientation: landscape) {
+    #controls {
+        max-height: 80vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 60px;  /* Space for toggle button */
+    }
+
+    .toggle-controls {
+        bottom: 10px;
+    }
+
+    #copyright {
+        bottom: 60px;
     }
 }
