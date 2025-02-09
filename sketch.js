@@ -286,31 +286,15 @@ function savePNGFile() {
     const isMobile = window.innerWidth <= 768 || (window.innerWidth / window.innerHeight < 9/16);
     
     if (isMobile) {
-        // Get the current WebGL canvas
+        // Get the current canvas and its exact content
         const mainCanvas = document.getElementById('defaultCanvas0');
+        const dataURL = mainCanvas.toDataURL('image/png');
         
-        // Create a temporary canvas at exactly the same size as the current view
-        let tempCanvas = document.createElement('canvas');
-        tempCanvas.width = width;
-        tempCanvas.height = height;
-        let ctx = tempCanvas.getContext('2d');
-        
-        // Fill with current background color
-        ctx.fillStyle = backgroundColor;
-        ctx.fillRect(0, 0, width, height);
-        
-        // Draw the current canvas view exactly as is
-        ctx.drawImage(mainCanvas, 0, 0);
-        
-        // Add copyright text
-        const fontSize = Math.round(16);
-        ctx.font = `${fontSize}px Arial`;
-        ctx.fillStyle = select('#strokeColor').value();
-        ctx.textAlign = 'center';
-        ctx.fillText('Copyright 2025 DrBaph, UK. All rights reserved.', width/2, height - 20);
-        
-        // Save the image
-        saveCanvas(tempCanvas, 'drbaph-HD', 'png');
+        // Create a temporary link to download the image
+        const link = document.createElement('a');
+        link.download = 'drbaph-shape.png';
+        link.href = dataURL;
+        link.click();
     } else {
         // Desktop version with high resolution
         let tempCanvas = document.createElement('canvas');
