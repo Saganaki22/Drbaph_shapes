@@ -286,7 +286,10 @@ function savePNGFile() {
     // Create a high-resolution canvas
     let tempCanvas = document.createElement('canvas');
     const pixelDensity = window.devicePixelRatio || 1;
-    const scale = Math.max(2, pixelDensity * 1.5); // Adjusted scale factor
+    const isMobile = window.innerWidth <= 768 || (window.innerWidth / window.innerHeight < 9/16);
+    
+    // Simpler scaling for mobile, keep complex scaling for desktop
+    const scale = isMobile ? 1.5 : Math.max(2, pixelDensity * 1.5);
     tempCanvas.width = width * scale;
     tempCanvas.height = height * scale;
     
@@ -303,15 +306,28 @@ function savePNGFile() {
     
     // Draw background first
     tempP5Canvas.push();
-    tempP5Canvas.translate(0, 0, -cameraZ);
+    if (isMobile) {
+        // Simpler transform for mobile
+        tempP5Canvas.translate(0, 0, -500);
+        tempP5Canvas.scale(scale);
+    } else {
+        // Keep existing desktop transform
+        tempP5Canvas.translate(0, 0, -cameraZ);
+        tempP5Canvas.scale(scale);
+    }
     tempP5Canvas.rotateY(bgRotation);
-    tempP5Canvas.scale(scale);
     drawBackgroundToCanvas(tempP5Canvas);
     tempP5Canvas.pop();
     
     // Draw main shape
     tempP5Canvas.push();
-    tempP5Canvas.translate(0, 0, 0);
+    if (isMobile) {
+        // Simpler transform for mobile
+        tempP5Canvas.translate(0, 0, 0);
+    } else {
+        // Keep existing desktop transform
+        tempP5Canvas.translate(0, 0, 0);
+    }
     
     if (autoRotate) {
         tempP5Canvas.rotateX(time);
@@ -322,7 +338,12 @@ function savePNGFile() {
     tempP5Canvas.rotateY(radians(rotY));
     tempP5Canvas.rotateZ(radians(rotZ));
     
-    tempP5Canvas.scale(currentScale * zoomFactor * scale);
+    // Simpler scaling for mobile
+    if (isMobile) {
+        tempP5Canvas.scale(currentScale * zoomFactor);
+    } else {
+        tempP5Canvas.scale(currentScale * zoomFactor * scale);
+    }
     
     if (showGrid) {
         drawGridToCanvas(tempP5Canvas);
@@ -340,9 +361,6 @@ function savePNGFile() {
     
     // Draw the WebGL canvas content to the 2D canvas
     tempCtx.drawImage(tempP5Canvas.elt, 0, 0);
-    
-    // Determine if we're on mobile (check both width and aspect ratio)
-    const isMobile = window.innerWidth <= 768 || (window.innerWidth / window.innerHeight < 9/16);
     
     // Scale the copyright text based on the canvas size and device
     const baseFontSize = isMobile ? 13 : 17; // 4px smaller on mobile
