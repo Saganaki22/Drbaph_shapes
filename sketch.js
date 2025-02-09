@@ -286,26 +286,33 @@ function savePNGFile() {
     // Create a high-resolution canvas
     let tempCanvas = document.createElement('canvas');
     const pixelDensity = window.devicePixelRatio || 1;
-    const scale = Math.max(3, pixelDensity * 2); // At least 3x resolution, more on high-DPI devices
+    const scale = Math.max(2, pixelDensity * 1.5); // Adjusted scale factor
     tempCanvas.width = width * scale;
     tempCanvas.height = height * scale;
     
     // Create a temporary WebGL canvas for high-quality rendering
     let tempP5Canvas = createGraphics(tempCanvas.width, tempCanvas.height, WEBGL);
     
+    // Set up the camera and perspective for the temp canvas
+    const fov = PI/3;
+    const cameraZ = (tempCanvas.height/2.0) / tan(fov/2.0);
+    tempP5Canvas.perspective(fov, tempCanvas.width/tempCanvas.height, cameraZ/10.0, cameraZ*10.0);
+    
     // Copy current camera and rendering settings
     tempP5Canvas.background(backgroundColor);
     
     // Draw background first
     tempP5Canvas.push();
-    tempP5Canvas.translate(0, 0, -1000 * scale);
+    tempP5Canvas.translate(0, 0, -cameraZ);
     tempP5Canvas.rotateY(bgRotation);
-    tempP5Canvas.scale(scale * 2);
+    tempP5Canvas.scale(scale);
     drawBackgroundToCanvas(tempP5Canvas);
     tempP5Canvas.pop();
     
     // Draw main shape
     tempP5Canvas.push();
+    tempP5Canvas.translate(0, 0, 0);
+    
     if (autoRotate) {
         tempP5Canvas.rotateX(time);
         tempP5Canvas.rotateY(time * 0.6);
@@ -392,13 +399,13 @@ function drawShapeToCanvas(targetCanvas) {
             targetCanvas.box(100);
             break;
         case 'sphere':
-            targetCanvas.sphere(50, 16, 16);
+            targetCanvas.sphere(50, 24, 24); // Increased segments for higher quality
             break;
         case 'torus':
-            targetCanvas.torus(40, 20, 24, 16);
+            targetCanvas.torus(40, 20, 32, 24); // Increased segments
             break;
         case 'cone':
-            targetCanvas.cone(50, 100, 16, 8);
+            targetCanvas.cone(50, 100, 32, 16); // Increased segments
             break;
         case 'cylinder':
             drawCylinderToCanvas(targetCanvas);
