@@ -297,59 +297,72 @@ function savePNGFile() {
     let tempP5Canvas = createGraphics(tempCanvas.width, tempCanvas.height, WEBGL);
     
     if (isMobile) {
-        // For mobile: Match the main canvas settings exactly
+        // For mobile: Use exact current viewport settings
         tempP5Canvas.perspective(PI/3, tempCanvas.width/tempCanvas.height, 0.1, 10000);
+        
+        // Match current viewport scale and zoom
+        const viewportScale = 1 / (window.visualViewport ? window.visualViewport.scale : 1);
+        tempP5Canvas.scale(viewportScale);
+        
+        // Draw background at current zoom level
+        tempP5Canvas.push();
+        tempP5Canvas.translate(0, 0, -400 * viewportScale);
+        tempP5Canvas.rotateY(bgRotation);
+        drawBackgroundToCanvas(tempP5Canvas);
+        tempP5Canvas.pop();
+        
+        // Draw shape at current zoom level
+        tempP5Canvas.push();
+        if (autoRotate) {
+            tempP5Canvas.rotateX(time);
+            tempP5Canvas.rotateY(time * 0.6);
+        }
+        
+        tempP5Canvas.rotateX(radians(rotX));
+        tempP5Canvas.rotateY(radians(rotY));
+        tempP5Canvas.rotateZ(radians(rotZ));
+        
+        // Use current zoom level
+        tempP5Canvas.scale(currentScale * zoomFactor * viewportScale);
+        
+        if (showGrid) {
+            drawGridToCanvas(tempP5Canvas);
+        }
+        drawShapeToCanvas(tempP5Canvas);
+        tempP5Canvas.pop();
     } else {
-        // For desktop: Use calculated camera settings
+        // Desktop version remains unchanged
         const fov = PI/3;
         const cameraZ = (tempCanvas.height/2.0) / tan(fov/2.0);
         tempP5Canvas.perspective(fov, tempCanvas.width/tempCanvas.height, cameraZ/10.0, cameraZ*10.0);
-    }
-    
-    // Copy current camera and rendering settings
-    tempP5Canvas.background(backgroundColor);
-    
-    // Draw background first
-    tempP5Canvas.push();
-    if (isMobile) {
-        // For mobile: Match main canvas transform
-        tempP5Canvas.translate(0, 0, -400);
-        tempP5Canvas.scale(1);
-    } else {
-        // For desktop: Use calculated transform
+        
+        // Draw background
+        tempP5Canvas.push();
         tempP5Canvas.translate(0, 0, -800);
         tempP5Canvas.scale(scale);
-    }
-    tempP5Canvas.rotateY(bgRotation);
-    drawBackgroundToCanvas(tempP5Canvas);
-    tempP5Canvas.pop();
-    
-    // Draw main shape
-    tempP5Canvas.push();
-    
-    if (autoRotate) {
-        tempP5Canvas.rotateX(time);
-        tempP5Canvas.rotateY(time * 0.6);
-    }
-    
-    tempP5Canvas.rotateX(radians(rotX));
-    tempP5Canvas.rotateY(radians(rotY));
-    tempP5Canvas.rotateZ(radians(rotZ));
-    
-    if (isMobile) {
-        // For mobile: Use current scale without additional multiplier
-        tempP5Canvas.scale(currentScale * zoomFactor);
-    } else {
-        // For desktop: Include high-res multiplier
+        tempP5Canvas.rotateY(bgRotation);
+        drawBackgroundToCanvas(tempP5Canvas);
+        tempP5Canvas.pop();
+        
+        // Draw shape
+        tempP5Canvas.push();
+        if (autoRotate) {
+            tempP5Canvas.rotateX(time);
+            tempP5Canvas.rotateY(time * 0.6);
+        }
+        
+        tempP5Canvas.rotateX(radians(rotX));
+        tempP5Canvas.rotateY(radians(rotY));
+        tempP5Canvas.rotateZ(radians(rotZ));
+        
         tempP5Canvas.scale(currentScale * zoomFactor * scale);
+        
+        if (showGrid) {
+            drawGridToCanvas(tempP5Canvas);
+        }
+        drawShapeToCanvas(tempP5Canvas);
+        tempP5Canvas.pop();
     }
-    
-    if (showGrid) {
-        drawGridToCanvas(tempP5Canvas);
-    }
-    
-    drawShapeToCanvas(tempP5Canvas);
-    tempP5Canvas.pop();
     
     // Get the 2D context for adding copyright
     let tempCtx = tempCanvas.getContext('2d');
@@ -362,7 +375,7 @@ function savePNGFile() {
     tempCtx.drawImage(tempP5Canvas.elt, 0, 0);
     
     // Scale the copyright text based on the canvas size and device
-    const baseFontSize = isMobile ? 20 : 17; // Larger on mobile
+    const baseFontSize = isMobile ? 20 : 17;
     const scaledFontSize = Math.round(baseFontSize * scale);
     const scaledYOffset = Math.round(30 * scale);
     
