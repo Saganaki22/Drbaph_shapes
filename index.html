@@ -223,13 +223,18 @@
                     recordingCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
                     recordingCtx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
                     recordingCtx.lineWidth = 2;
-                    recordingCtx.font = 'bold 17px Arial';
+                    
+                    // Adjust font size based on mobile detection
+                    const isMobile = window.innerWidth <= 768 || (window.innerWidth / window.innerHeight < 9/16);
+                    const baseFontSize = isMobile ? 24 : 17; // Larger font for mobile
+                    recordingCtx.font = `bold ${baseFontSize}px Arial`;
+                    
                     recordingCtx.textAlign = 'center';
                     recordingCtx.textBaseline = 'bottom';
                     
                     const text = copyright.textContent;
                     const x = recordingCanvas.width / 2;
-                    const y = recordingCanvas.height - 25;
+                    const y = recordingCanvas.height - (isMobile ? 35 : 25); // More bottom padding on mobile
                     
                     // Draw stroke first
                     recordingCtx.strokeText(text, x, y);
