@@ -283,38 +283,31 @@ function toggleFullscreen() {
 }
 
 function savePNGFile() {
-    // Create a high-resolution canvas
-    let tempCanvas = document.createElement('canvas');
-    const pixelDensity = window.devicePixelRatio || 1;
     const isMobile = window.innerWidth <= 768 || (window.innerWidth / window.innerHeight < 9/16);
     
-    // Simple 1.5x scale for mobile, more complex for desktop
-    const scale = isMobile ? 1.5 : Math.max(2, pixelDensity * 1.5);
-    tempCanvas.width = width * scale;
-    tempCanvas.height = height * scale;
-    
-    // Create a temporary WebGL canvas for high-quality rendering
-    let tempP5Canvas = createGraphics(tempCanvas.width, tempCanvas.height, WEBGL);
-    
-    // Set background color and clear with it
-    tempP5Canvas.background(backgroundColor);
-    
     if (isMobile) {
-        // For mobile: Use exact current viewport settings
-        tempP5Canvas.perspective(PI/3, tempCanvas.width/tempCanvas.height, 0.1, 10000);
+        // For mobile: Create canvas at exact screen size
+        let tempCanvas = document.createElement('canvas');
+        tempCanvas.width = width;
+        tempCanvas.height = height;
         
-        // Match current viewport scale and zoom
-        const viewportScale = 1 / (window.visualViewport ? window.visualViewport.scale : 1);
-        tempP5Canvas.scale(viewportScale);
+        // Create WebGL canvas at same size
+        let tempP5Canvas = createGraphics(width, height, WEBGL);
         
-        // Draw background at current zoom level
+        // Match main canvas settings exactly
+        tempP5Canvas.perspective(PI/3, width/height, 0.1, 10000);
+        
+        // Set background
+        tempP5Canvas.background(backgroundColor);
+        
+        // Draw background
         tempP5Canvas.push();
-        tempP5Canvas.translate(0, 0, -400 * viewportScale);
+        tempP5Canvas.translate(0, 0, -400);
         tempP5Canvas.rotateY(bgRotation);
         drawBackgroundToCanvas(tempP5Canvas);
         tempP5Canvas.pop();
         
-        // Draw shape at current zoom level
+        // Draw shape
         tempP5Canvas.push();
         if (autoRotate) {
             tempP5Canvas.rotateX(time);
@@ -325,19 +318,43 @@ function savePNGFile() {
         tempP5Canvas.rotateY(radians(rotY));
         tempP5Canvas.rotateZ(radians(rotZ));
         
-        // Use current zoom level
-        tempP5Canvas.scale(currentScale * zoomFactor * viewportScale);
+        tempP5Canvas.scale(currentScale * zoomFactor);
         
         if (showGrid) {
             drawGridToCanvas(tempP5Canvas);
         }
         drawShapeToCanvas(tempP5Canvas);
         tempP5Canvas.pop();
+        
+        // Get 2D context and draw
+        let tempCtx = tempCanvas.getContext('2d');
+        tempCtx.fillStyle = backgroundColor;
+        tempCtx.fillRect(0, 0, width, height);
+        tempCtx.drawImage(tempP5Canvas.elt, 0, 0);
+        
+        // Add copyright text
+        const fontSize = 18;
+        drawCopyrightText(tempCtx, width/2, height - 40, fontSize);
+        
+        // Save image
+        saveCanvas(tempCanvas, 'drbaph-HD', 'png');
     } else {
-        // Desktop version remains unchanged
+        // Desktop version with high resolution
+        let tempCanvas = document.createElement('canvas');
+        const pixelDensity = window.devicePixelRatio || 1;
+        const scale = Math.max(2, pixelDensity * 1.5);
+        tempCanvas.width = width * scale;
+        tempCanvas.height = height * scale;
+        
+        // Create a temporary WebGL canvas for high-quality rendering
+        let tempP5Canvas = createGraphics(tempCanvas.width, tempCanvas.height, WEBGL);
+        
         const fov = PI/3;
         const cameraZ = (tempCanvas.height/2.0) / tan(fov/2.0);
         tempP5Canvas.perspective(fov, tempCanvas.width/tempCanvas.height, cameraZ/10.0, cameraZ*10.0);
+        
+        // Set background
+        tempP5Canvas.background(backgroundColor);
         
         // Draw background
         tempP5Canvas.push();
@@ -365,32 +382,20 @@ function savePNGFile() {
         }
         drawShapeToCanvas(tempP5Canvas);
         tempP5Canvas.pop();
+        
+        // Get 2D context and draw
+        let tempCtx = tempCanvas.getContext('2d');
+        tempCtx.fillStyle = backgroundColor;
+        tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+        tempCtx.drawImage(tempP5Canvas.elt, 0, 0);
+        
+        // Add copyright text
+        const fontSize = Math.round(17 * scale);
+        drawCopyrightText(tempCtx, tempCanvas.width/2, tempCanvas.height - Math.round(30 * scale), fontSize);
+        
+        // Save image
+        saveCanvas(tempCanvas, 'drbaph-HD', 'png');
     }
-    
-    // Get the 2D context for adding copyright
-    let tempCtx = tempCanvas.getContext('2d');
-    
-    // Fill with background color first
-    tempCtx.fillStyle = backgroundColor;
-    tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-    
-    // Enable high-quality image scaling
-    tempCtx.imageSmoothingEnabled = true;
-    tempCtx.imageSmoothingQuality = 'high';
-    
-    // Draw the WebGL canvas content to the 2D canvas
-    tempCtx.drawImage(tempP5Canvas.elt, 0, 0);
-    
-    // Scale the copyright text based on the canvas size and device
-    const baseFontSize = isMobile ? 24 : 17; // Reduced from 28 to 24 for mobile
-    const scaledFontSize = Math.round(baseFontSize * (isMobile ? 1 : scale)); // Don't scale mobile font
-    const scaledYOffset = Math.round(40 * (isMobile ? 1 : scale)); // Adjusted padding for mobile
-    
-    // Add copyright with stroke and shadow for exported content only
-    drawCopyrightText(tempCtx, tempCanvas.width/2, tempCanvas.height - scaledYOffset, scaledFontSize);
-    
-    // Save the high-resolution image
-    saveCanvas(tempCanvas, 'drbaph-HD', 'png');
 }
 
 // Helper function to draw background to a specific canvas
