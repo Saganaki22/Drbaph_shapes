@@ -288,7 +288,7 @@ function savePNGFile() {
     const pixelDensity = window.devicePixelRatio || 1;
     const isMobile = window.innerWidth <= 768 || (window.innerWidth / window.innerHeight < 9/16);
     
-    // Simpler scaling for mobile, keep complex scaling for desktop
+    // Simple 1.5x scale for mobile, more complex for desktop
     const scale = isMobile ? 1.5 : Math.max(2, pixelDensity * 1.5);
     tempCanvas.width = width * scale;
     tempCanvas.height = height * scale;
@@ -296,10 +296,15 @@ function savePNGFile() {
     // Create a temporary WebGL canvas for high-quality rendering
     let tempP5Canvas = createGraphics(tempCanvas.width, tempCanvas.height, WEBGL);
     
-    // Set up the camera and perspective for the temp canvas
-    const fov = PI/3;
-    const cameraZ = (tempCanvas.height/2.0) / tan(fov/2.0);
-    tempP5Canvas.perspective(fov, tempCanvas.width/tempCanvas.height, cameraZ/10.0, cameraZ*10.0);
+    if (isMobile) {
+        // For mobile: Match the main canvas settings exactly
+        tempP5Canvas.perspective(PI/3, tempCanvas.width/tempCanvas.height, 0.1, 10000);
+    } else {
+        // For desktop: Use calculated camera settings
+        const fov = PI/3;
+        const cameraZ = (tempCanvas.height/2.0) / tan(fov/2.0);
+        tempP5Canvas.perspective(fov, tempCanvas.width/tempCanvas.height, cameraZ/10.0, cameraZ*10.0);
+    }
     
     // Copy current camera and rendering settings
     tempP5Canvas.background(backgroundColor);
@@ -307,12 +312,12 @@ function savePNGFile() {
     // Draw background first
     tempP5Canvas.push();
     if (isMobile) {
-        // Simpler transform for mobile
-        tempP5Canvas.translate(0, 0, -500);
-        tempP5Canvas.scale(scale);
+        // For mobile: Match main canvas transform
+        tempP5Canvas.translate(0, 0, -400);
+        tempP5Canvas.scale(1);
     } else {
-        // Keep existing desktop transform
-        tempP5Canvas.translate(0, 0, -cameraZ);
+        // For desktop: Use calculated transform
+        tempP5Canvas.translate(0, 0, -800);
         tempP5Canvas.scale(scale);
     }
     tempP5Canvas.rotateY(bgRotation);
@@ -321,13 +326,6 @@ function savePNGFile() {
     
     // Draw main shape
     tempP5Canvas.push();
-    if (isMobile) {
-        // Simpler transform for mobile
-        tempP5Canvas.translate(0, 0, 0);
-    } else {
-        // Keep existing desktop transform
-        tempP5Canvas.translate(0, 0, 0);
-    }
     
     if (autoRotate) {
         tempP5Canvas.rotateX(time);
@@ -338,10 +336,11 @@ function savePNGFile() {
     tempP5Canvas.rotateY(radians(rotY));
     tempP5Canvas.rotateZ(radians(rotZ));
     
-    // Simpler scaling for mobile
     if (isMobile) {
+        // For mobile: Use current scale without additional multiplier
         tempP5Canvas.scale(currentScale * zoomFactor);
     } else {
+        // For desktop: Include high-res multiplier
         tempP5Canvas.scale(currentScale * zoomFactor * scale);
     }
     
@@ -363,7 +362,7 @@ function savePNGFile() {
     tempCtx.drawImage(tempP5Canvas.elt, 0, 0);
     
     // Scale the copyright text based on the canvas size and device
-    const baseFontSize = isMobile ? 13 : 17; // 4px smaller on mobile
+    const baseFontSize = isMobile ? 20 : 17; // Larger on mobile
     const scaledFontSize = Math.round(baseFontSize * scale);
     const scaledYOffset = Math.round(30 * scale);
     
