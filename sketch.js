@@ -286,70 +286,25 @@ function savePNGFile() {
     const isMobile = window.innerWidth <= 768 || (window.innerWidth / window.innerHeight < 9/16);
     
     if (isMobile) {
-        // For mobile: Get the actual canvas and its dimensions
-        const mainCanvas = document.getElementById('defaultCanvas0');
-        if (!mainCanvas) return;
-        
-        // Create canvas matching the actual displayed canvas size
+        // For mobile: Create a temporary canvas
         let tempCanvas = document.createElement('canvas');
-        tempCanvas.width = mainCanvas.width;
-        tempCanvas.height = mainCanvas.height;
+        tempCanvas.width = width;
+        tempCanvas.height = height;
+        let ctx = tempCanvas.getContext('2d');
         
-        // Create WebGL canvas at same size
-        let tempP5Canvas = createGraphics(mainCanvas.width, mainCanvas.height, WEBGL);
+        // Get the current canvas
+        const mainCanvas = document.getElementById('defaultCanvas0');
         
-        // Match main canvas settings exactly
-        const mainCanvasAspect = mainCanvas.width / mainCanvas.height;
-        tempP5Canvas.perspective(PI/3, mainCanvasAspect, 0.1, 10000);
-        
-        // Set background
-        tempP5Canvas.background(backgroundColor);
-        
-        // Draw background
-        tempP5Canvas.push();
-        tempP5Canvas.translate(0, 0, -400);
-        tempP5Canvas.rotateY(bgRotation);
-        drawBackgroundToCanvas(tempP5Canvas);
-        tempP5Canvas.pop();
-        
-        // Draw shape with exact current transformations
-        tempP5Canvas.push();
-        
-        // Apply current rotation state
-        if (autoRotate) {
-            tempP5Canvas.rotateX(time);
-            tempP5Canvas.rotateY(time * 0.6);
-        }
-        
-        tempP5Canvas.rotateX(radians(rotX));
-        tempP5Canvas.rotateY(radians(rotY));
-        tempP5Canvas.rotateZ(radians(rotZ));
-        
-        // Apply exact current scale
-        const currentZoom = zoomFactor;
-        tempP5Canvas.scale(currentScale * currentZoom);
-        
-        if (showGrid) {
-            drawGridToCanvas(tempP5Canvas);
-        }
-        drawShapeToCanvas(tempP5Canvas);
-        tempP5Canvas.pop();
-        
-        // Get 2D context and draw
-        let tempCtx = tempCanvas.getContext('2d');
-        
-        // Fill background
-        tempCtx.fillStyle = backgroundColor;
-        tempCtx.fillRect(0, 0, mainCanvas.width, mainCanvas.height);
-        
-        // Draw WebGL content
-        tempCtx.drawImage(tempP5Canvas.elt, 0, 0);
+        // Draw the current canvas content
+        ctx.fillStyle = backgroundColor;
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(mainCanvas, 0, 0);
         
         // Add copyright text
         const fontSize = 18;
-        drawCopyrightText(tempCtx, mainCanvas.width/2, mainCanvas.height - 40, fontSize);
+        drawCopyrightText(ctx, width/2, height - 40, fontSize);
         
-        // Save image
+        // Save the image
         saveCanvas(tempCanvas, 'drbaph-HD', 'png');
     } else {
         // Desktop version with high resolution
