@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>3D Wireframe Shapes</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+    <div class="loading-screen">
+        <canvas id="matrixCanvas"></canvas>
+    </div>
+
+    <div class="content-wrapper">
+        <div id="canvas-container"></div>
+        <canvas id="overlayCanvas"></canvas>
+        <button id="toggleControls" class="toggle-controls">&#9776;</button>
+        <div id="controls">
+            <select id="shapeSelect">
+                <option value="cube">Cube</option>
+                <option value="sphere">Sphere</option>
+                <option value="torus">Torus</option>
+                <option value="cone">Cone</option>
+                <option value="cylinder">Cylinder</option>
+                <option value="triangularPyramid">Triangular Pyramid</option>
+                <option value="hexagonalPrism">Hexagonal Prism</option>
+                <option value="icosahedron">Icosahedron</option>
+                <option value="schwarzSurface">Schwarz Surface</option>
+                <option value="gyroid">Gyroid Surface</option>
+                <option value="hyperboloid">Hyperboloid</option>
+                <option value="mobiusStrip">Möbius Strip</option>
+            </select>
+            <label>Rotation X: <input type="range" id="rotationX" min="0" max="360" value="0"></label>
+            <label>Rotation Y: <input type="range" id="rotationY" min="0" max="360" value="0"></label>
+            <label>Rotation Z: <input type="range" id="rotationZ" min="0" max="360" value="0"></label>
+            <label>Scale: <input type="range" id="scale" min="20" max="1000" value="100"></label>
+            <label>Animation Speed: <input type="range" id="speed" min="0" max="5" step="0.1" value="0.3"></label>
+            <label>Line Thickness: <input type="range" id="strokeWeight" min="0.1" max="3" step="0.1" value="1.5"></label>
+            <label>Line Color: <input type="color" id="strokeColor" value="#ffffff"></label>
+            <label>BG Color: <input type="color" id="bgColor" value="#000000"></label>
+            <label>BG Density: <input type="range" id="nodeCount" min="20" max="200" value="80"></label>
+            <label>BG Speed: <input type="range" id="bgSpeed" min="0" max="0.01" step="0.001" value="0.001"></label>
+            <label>Auto Rotate: <input type="checkbox" id="autoRotate" checked> Auto Rotate</label>
+            <label>Show Grid: <input type="checkbox" id="showGrid"> Show Grid</label>
+            <div class="button-group">
+                <button id="fullscreenBtn">Toggle Fullscreen</button>
+                <button id="savePNG">Save IMG</button>
+                <button id="recordButton">Start Recording</button>
+            </div>
+        </div>
+        <div id="recording-status"></div>
+        <div id="recording-indicator"></div>
+        <div id="copyright">Copyright 2025 DrBaph, UK. All rights reserved.</div>
+    </div>
+
+    <script src="sketch.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.getElementById('matrixCanvas');
+            const ctx = canvas.getContext('2d');
+            const loadingScreen = document.querySelector('.loading-screen');
+            const contentWrapper = document.querySelector('.content-wrapper');
+            const toggleBtn = document.getElementById('toggleControls');
+            const controls = document.getElementById('controls');
+
+            // Set initial canvas size and background
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Matrix characters
+            const chars = "drbaph".split('');
+            const fontSize = 20;
+            const columns = Math.floor(canvas.width / fontSize);
+            const drops = Array(columns).fill(1);
+            const updateDelay = Array(columns).fill(0);
+            const lastUpdate = Array(columns).fill(Date.now());
+
+            function drawMatrix() {
+                // Dark fade for trails
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                for (let i = 0; i < drops.length; i++) {
+                    const now = Date.now();
+                    if (now - lastUpdate[i] < updateDelay[i]) continue;
+
+                    // Random character
+                    const char = chars[Math.floor(Math.random() * chars.length)];
+                    const x = i * fontSize;
+                    const y = drops[i] * fontSize;
+
+                    // Strong glow effect
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = '#ffffff';
+
+                    // Leading character (bright white with strong glow)
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                    ctx.font = `${fontSize}px monospace`;
+                    ctx.fillText(char, x, y);
+
+                    // Trail characters (fading green)
+                    for (let j = 1; j < 15; j++) {
+                        const trailChar = chars[Math.floor(Math.random() * chars.length)];
+                        const alpha = (15 - j) / 15;
+                        ctx.shadowBlur = 0; // No glow for trails
+                        ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.1})`;
+                        ctx.fillText(trailChar, x, y - j * fontSize);
+                    }
+
+                    // Update drop position with faster speed
+                    if (y > canvas.height && Math.random() > 0.975) {
+                        drops[i] = 0;
+                        updateDelay[i] = Math.random() * 50; // Faster drops
+                    } else {
+                        drops[i]++;
+                    }
+
+                    lastUpdate[i] = now;
+                }
+            }
+
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                const newColumns = Math.floor(canvas.width / fontSize);
+                while (drops.length < newColumns) {
+                    drops.push(0);
+                    lastUpdate.push(Date.now());
+                    updateDelay.push(Math.random() * 150 + 100);
+                }
+            });
+
+            // Setup controls toggle
+            toggleBtn.addEventListener('click', () => {
+                controls.classList.toggle('controls-hidden');
+                toggleBtn.classList.toggle('active');
+            });
+
+            // Set initial state
+            controls.classList.remove('controls-hidden');
+            toggleBtn.classList.remove('active');
+
+            // Start matrix animation with faster refresh rate
+            const matrixInterval = setInterval(drawMatrix, 20);
+
+            // Listen for animation end
+            setTimeout(() => {
+                loadingScreen.classList.add('fade-out');
+                canvas.style.opacity = '1';
+                canvas.style.transition = 'opacity 0.5s ease-out';
+                
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                    clearInterval(matrixInterval);
+                    contentWrapper.style.opacity = '1';
+                    contentWrapper.style.visibility = 'visible';
+                }, 500);
+            }, 3000);
+
+            let mediaRecorder = null;
+            let recordedChunks = [];
+            let animationFrameId = null;
+            const recordButton = document.getElementById('recordButton');
+            const recordingStatus = document.getElementById('recording-status');
+            const recordingIndicator = document.getElementById('recording-indicator');
+            const copyright = document.getElementById('copyright');
+
+            function stopRecording() {
+                if (mediaRecorder && mediaRecorder.state === 'recording') {
+                    mediaRecorder.stop();
+                    if (animationFrameId) {
+                        cancelAnimationFrame(animationFrameId);
+                        animationFrameId = null;
+                    }
+                }
+                recordButton.textContent = 'Start Recording';
+                recordButton.classList.remove('recording');
+                recordingIndicator.classList.remove('active');
+            }
+
+            function startRecording() {
+                const canvas = document.querySelector('#defaultCanvas0');
+                if (!canvas) {
+                    recordingStatus.textContent = 'Error: Canvas not found';
+                    return;
+                }
+
+                // Create HD canvas with correct aspect ratio
+                const recordingCanvas = document.createElement('canvas');
+                const aspectRatio = canvas.width / canvas.height;
+                recordingCanvas.height = 1080; // Base height for HD
+                recordingCanvas.width = Math.round(recordingCanvas.height * aspectRatio); // Maintain aspect ratio
+                const recordingCtx = recordingCanvas.getContext('2d', {
+                    alpha: false
+                });
+
+                // Optimize canvas
+                recordingCtx.imageSmoothingEnabled = true;
+                recordingCtx.imageSmoothingQuality = 'high';
+
+                function drawFrame() {
+                    if (!mediaRecorder || mediaRecorder.state !== 'recording') return;
+                    
+                    // Clear canvas with black background
+                    recordingCtx.fillStyle = '#000000';
+                    recordingCtx.fillRect(0, 0, recordingCanvas.width, recordingCanvas.height);
+                    
+                    // Draw main content
+                    recordingCtx.drawImage(canvas, 0, 0, recordingCanvas.width, recordingCanvas.height);
+                    
+                    // Add copyright text centered at bottom with stroke and shadow
+                    recordingCtx.save();
+                    
+                    // Add shadow
+                    recordingCtx.shadowBlur = 4;
+                    recordingCtx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                    recordingCtx.shadowOffsetX = 2;
+                    recordingCtx.shadowOffsetY = 2;
+                    
+                    // Text settings
+                    recordingCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                    recordingCtx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
+                    recordingCtx.lineWidth = 2;
+                    recordingCtx.font = 'bold 24px Arial';
+                    recordingCtx.textAlign = 'center';
+                    recordingCtx.textBaseline = 'bottom';
+                    
+                    const text = copyright.textContent;
+                    const x = recordingCanvas.width / 2;
+                    const y = recordingCanvas.height - 20;
+                    
+                    // Draw stroke first
+                    recordingCtx.strokeText(text, x, y);
+                    // Then fill
+                    recordingCtx.fillText(text, x, y);
+                    
+                    recordingCtx.restore();
+                    
+                    animationFrameId = requestAnimationFrame(drawFrame);
+                }
+
+                try {
+                    // Check supported MIME types
+                    const mimeTypes = [
+                        'video/webm;codecs=vp9,opus',
+                        'video/webm;codecs=vp8,opus',
+                        'video/webm;codecs=vp8',
+                        'video/webm'
+                    ];
+
+                    let selectedMimeType = null;
+                    for (const mimeType of mimeTypes) {
+                        if (MediaRecorder.isTypeSupported(mimeType)) {
+                            selectedMimeType = mimeType;
+                            console.log('Using MIME type:', mimeType);
+                            break;
+                        }
+                    }
+
+                    if (!selectedMimeType) {
+                        throw new Error('No supported MIME type found');
+                    }
+
+                    const stream = recordingCanvas.captureStream(60);
+                    recordedChunks = [];
+
+                    mediaRecorder = new MediaRecorder(stream, {
+                        mimeType: selectedMimeType,
+                        videoBitsPerSecond: 50000000
+                    });
+
+                    mediaRecorder.ondataavailable = (e) => {
+                        console.log('Data available event:', e.data ? e.data.size : 'no data');
+                        if (e.data && e.data.size > 0) {
+                            recordedChunks.push(e.data);
+                            console.log('Added chunk, total chunks:', recordedChunks.length);
+                        }
+                    };
+
+                    mediaRecorder.onstart = () => {
+                        console.log('Recording started');
+                        recordedChunks = [];
+                        drawFrame();
+                    };
+
+                    mediaRecorder.onerror = (event) => {
+                        console.error('MediaRecorder error:', event.error);
+                    };
+
+                    mediaRecorder.onstop = () => {
+                        console.log('Recording stopped');
+                        if (animationFrameId) {
+                            cancelAnimationFrame(animationFrameId);
+                            animationFrameId = null;
+                        }
+
+                        // Ensure we have data
+                        if (recordedChunks.length === 0) {
+                            console.error('No chunks recorded');
+                            recordingStatus.textContent = 'Error: No data recorded';
+                            return;
+                        }
+
+                        console.log('Creating blob from chunks:', recordedChunks.length);
+                        const blob = new Blob(recordedChunks, { 
+                            type: selectedMimeType
+                        });
+                        console.log('Final blob size:', blob.size);
+
+                        if (blob.size > 0) {
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = 'wireframe-recording.webm';
+                            document.body.appendChild(a);
+                            a.click();
+                            setTimeout(() => {
+                                document.body.removeChild(a);
+                                URL.revokeObjectURL(url);
+                            }, 100);
+
+                            recordingStatus.textContent = 'Recording saved!';
+                        } else {
+                            recordingStatus.textContent = 'Error: Recording failed';
+                        }
+
+                        setTimeout(() => {
+                            recordingStatus.textContent = '';
+                        }, 3000);
+
+                        // Reset button state
+                        recordButton.textContent = 'Start Recording';
+                        recordButton.classList.remove('recording');
+                        recordingIndicator.classList.remove('active');
+                    };
+
+                    // Request data more frequently and ensure we get the last piece
+                    mediaRecorder.start(100);
+                    
+                    // Force a data request after a short delay to ensure we're getting data
+                    setTimeout(() => {
+                        if (mediaRecorder.state === 'recording') {
+                            console.log('Requesting initial data');
+                            mediaRecorder.requestData();
+                        }
+                    }, 200);
+
+                    recordButton.textContent = 'Stop Recording';
+                    recordButton.classList.add('recording');
+                    recordingIndicator.classList.add('active');
+                    recordingStatus.textContent = 'Recording...';
+
+                } catch (error) {
+                    console.error('Recording setup failed:', error);
+                    recordingStatus.textContent = 'Error: Recording failed to start - ' + error.message;
+                }
+            }
+
+            recordButton.addEventListener('click', () => {
+                if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+                    startRecording();
+                } else if (mediaRecorder.state === 'recording') {
+                    stopRecording();
+                }
+            });
+
+            // Ensure cleanup if page is closed
+            window.addEventListener('beforeunload', () => {
+                stopRecording();
+            });
+        });
+    </script>
+</body>
+</html>
