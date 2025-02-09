@@ -90,13 +90,11 @@ This project is available under the **Apache License 2.0**.
 
 ![drbaph-HD (2)](https://github.com/user-attachments/assets/14ae3a11-7636-40a0-99a4-a57bb412bf4c)
 
-![wireframe (8)](https://github.com/user-attachments/assets/046e29aa-aa06-4763-a905-70b1d18553e4)
-
 [wireframe-recording (16).webm](https://github.com/user-attachments/assets/2f5a9ef9-4d4f-430d-9a99-4ce3d506884b)
 
 https://github.com/user-attachments/assets/bbec472e-f12f-4af0-9fca-01491c479e5c
 
-
+![wireframe (8)](https://github.com/user-attachments/assets/046e29aa-aa06-4763-a905-70b1d18553e4)
 
 ---
 
