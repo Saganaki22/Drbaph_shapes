@@ -286,21 +286,27 @@ function savePNGFile() {
     const isMobile = window.innerWidth <= 768 || (window.innerWidth / window.innerHeight < 9/16);
     
     if (isMobile) {
-        // For mobile: Create a temporary canvas
+        // For mobile: Create a temporary canvas with 2D context
         let tempCanvas = document.createElement('canvas');
         tempCanvas.width = width;
         tempCanvas.height = height;
         let ctx = tempCanvas.getContext('2d');
         
-        // Get the current canvas
+        // Get the WebGL canvas and adjust for coordinate system difference
         const mainCanvas = document.getElementById('defaultCanvas0');
         
-        // Draw the current canvas content
+        // Clear the temp canvas with background
         ctx.fillStyle = backgroundColor;
         ctx.fillRect(0, 0, width, height);
-        ctx.drawImage(mainCanvas, 0, 0);
         
-        // Add copyright text
+        // Draw WebGL canvas centered (WebGL origin is center, 2D origin is top-left)
+        ctx.save();
+        ctx.translate(width/2, height/2);
+        ctx.scale(1, -1); // Flip Y axis to match WebGL
+        ctx.drawImage(mainCanvas, -width/2, -height/2);
+        ctx.restore();
+        
+        // Add copyright text in normal orientation
         const fontSize = 18;
         drawCopyrightText(ctx, width/2, height - 40, fontSize);
         
