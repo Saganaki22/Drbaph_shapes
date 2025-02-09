@@ -28,18 +28,9 @@ function setup() {
     overlayCanvas.width = windowWidth;
     overlayCanvas.height = windowHeight;
     let ctx = overlayCanvas.getContext('2d');
-    drawCopyrightText(ctx, windowWidth/2, windowHeight - 20);
     
     // Initialize background nodes
     initializeNodes();
-    
-    // Setup controls toggle
-    const toggleBtn = document.getElementById('toggleControls');
-    const controls = document.getElementById('controls');
-    toggleBtn.addEventListener('click', () => {
-        controls.classList.toggle('controls-hidden');
-        toggleBtn.classList.toggle('active');
-    });
     
     // Event listeners for controls
     select('#shapeSelect').changed(() => currentShape = select('#shapeSelect').value());
@@ -57,14 +48,6 @@ function setup() {
     select('#bgSpeed').input(e => bgSpeed = parseFloat(e.target.value));
     select('#fullscreenBtn').mousePressed(toggleFullscreen);
     select('#savePNG').mousePressed(savePNGFile);
-    
-    // Setup controls toggle
-    const toggleBtn2 = document.getElementById('toggleControls');
-    const controls2 = document.getElementById('controls');
-    toggleBtn2.addEventListener('click', () => {
-        controls2.classList.toggle('controls-hidden');
-        toggleBtn2.classList.toggle('active');
-    });
 }
 
 function initializeNodes() {
@@ -271,7 +254,7 @@ function savePNGFile() {
     // Draw the main canvas content
     tempCtx.drawImage(canvas.elt, 0, 0, width, height);
     
-    // Add copyright with stroke and shadow
+    // Add copyright with stroke and shadow for exported content only
     drawCopyrightText(tempCtx, width/2, height - 20);
     
     // Save the high-resolution image with new filename
@@ -287,53 +270,11 @@ function mouseWheel(event) {
 function windowResized() {
     resizeCanvas(windowWidth, windowHeight);
     
-    // Resize and update overlay canvas
+    // Resize overlay canvas
     let overlayCanvas = document.getElementById('overlayCanvas');
     overlayCanvas.width = windowWidth;
     overlayCanvas.height = windowHeight;
     let ctx = overlayCanvas.getContext('2d');
-    drawCopyrightText(ctx, windowWidth/2, windowHeight - 20);
-}
-
-function drawCopyrightText(ctx, x, y) {
-    ctx.font = '14px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'bottom';
-    
-    // Add drop shadow
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-    ctx.shadowBlur = 4;
-    ctx.shadowOffsetX = 2;
-    ctx.shadowOffsetY = 2;
-    
-    // Add black stroke
-    ctx.strokeStyle = '#000000';
-    ctx.lineWidth = 2;
-    ctx.strokeText("Copyright 2025 DrBaph, UK. All rights reserved.", x, y);
-    
-    // Add white text
-    ctx.fillStyle = 'white';
-    ctx.fillText("Copyright 2025 DrBaph, UK. All rights reserved.", x, y);
-    
-    // Reset shadow
-    ctx.shadowColor = 'transparent';
-    ctx.shadowBlur = 0;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
-}
-
-// Create Sierpinski triangle fractal
-function createFractal(depth, x, y, size) {
-    if (depth == 0) {
-        return [{ x: x, y: y }];
-    } else {
-        let points = [];
-        let halfSize = size / 2;
-        points = points.concat(createFractal(depth - 1, x - halfSize, y - halfSize, halfSize));
-        points = points.concat(createFractal(depth - 1, x + halfSize, y - halfSize, halfSize));
-        points = points.concat(createFractal(depth - 1, x, y + halfSize, halfSize));
-        return points;
-    }
 }
 
 function createIcosahedron() {
@@ -723,4 +664,46 @@ function drawHexagonalPrism(radius = 40, height = 100) {
     }
     
     endShape();
+}
+
+// Create Sierpinski triangle fractal
+function createFractal(depth, x, y, size) {
+    if (depth == 0) {
+        return [{ x: x, y: y }];
+    } else {
+        let points = [];
+        let halfSize = size / 2;
+        points = points.concat(createFractal(depth - 1, x - halfSize, y - halfSize, halfSize));
+        points = points.concat(createFractal(depth - 1, x + halfSize, y - halfSize, halfSize));
+        points = points.concat(createFractal(depth - 1, x, y + halfSize, halfSize));
+        return points;
+    }
+}
+
+// Function to draw copyright text on exported content
+function drawCopyrightText(ctx, x, y, fontSize = 14) {
+    ctx.font = `${fontSize}px Arial`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    
+    // Add drop shadow
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+    ctx.shadowBlur = 4;
+    ctx.shadowOffsetX = 2;
+    ctx.shadowOffsetY = 2;
+    
+    // Add black stroke
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 2;
+    ctx.strokeText("Copyright 2025 DrBaph, UK. All rights reserved.", x, y);
+    
+    // Add white text
+    ctx.fillStyle = 'white';
+    ctx.fillText("Copyright 2025 DrBaph, UK. All rights reserved.", x, y);
+    
+    // Reset shadow
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
 }
