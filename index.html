@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>3D Wireframe Shapes</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
@@ -32,18 +32,18 @@
                 <option value="hyperboloid">Hyperboloid</option>
                 <option value="mobiusStrip">Möbius Strip</option>
             </select>
-            <label>Rotation X: <input type="range" id="rotationX" min="0" max="360" value="0"></label>
-            <label>Rotation Y: <input type="range" id="rotationY" min="0" max="360" value="0"></label>
-            <label>Rotation Z: <input type="range" id="rotationZ" min="0" max="360" value="0"></label>
-            <label>Scale: <input type="range" id="scale" min="20" max="1000" value="100"></label>
-            <label>Animation Speed: <input type="range" id="speed" min="0" max="5" step="0.1" value="0.3"></label>
-            <label>Line Thickness: <input type="range" id="strokeWeight" min="0.1" max="3" step="0.1" value="1.5"></label>
-            <label>Line Color: <input type="color" id="strokeColor" value="#ffffff"></label>
-            <label>BG Color: <input type="color" id="bgColor" value="#000000"></label>
-            <label>BG Density: <input type="range" id="nodeCount" min="20" max="200" value="80"></label>
-            <label>BG Speed: <input type="range" id="bgSpeed" min="0" max="0.01" step="0.001" value="0.001"></label>
-            <label>Auto Rotate: <input type="checkbox" id="autoRotate" checked></label>
-            <label>Show Grid: <input type="checkbox" id="showGrid"></label>
+            <label><span>Rotation X:</span> <input type="range" id="rotationX" min="0" max="360" value="0"></label>
+            <label><span>Rotation Y:</span> <input type="range" id="rotationY" min="0" max="360" value="0"></label>
+            <label><span>Rotation Z:</span> <input type="range" id="rotationZ" min="0" max="360" value="0"></label>
+            <label><span>Scale:</span> <input type="range" id="scale" min="20" max="1000" value="100"></label>
+            <label><span>Animation Speed:</span> <input type="range" id="speed" min="0" max="5" step="0.1" value="0.3"></label>
+            <label><span>Line Thickness:</span> <input type="range" id="strokeWeight" min="0.1" max="3" step="0.1" value="1.5"></label>
+            <label><span>Line Color:</span> <input type="color" id="strokeColor" value="#ffffff"></label>
+            <label><span>BG Color:</span> <input type="color" id="bgColor" value="#000000"></label>
+            <label><span>BG Density:</span> <input type="range" id="nodeCount" min="20" max="200" value="80"></label>
+            <label><span>BG Speed:</span> <input type="range" id="bgSpeed" min="0" max="0.01" step="0.001" value="0.001"></label>
+            <label><span>Auto Rotate:</span> <input type="checkbox" id="autoRotate" checked></label>
+            <label><span>Show Grid:</span> <input type="checkbox" id="showGrid"></label>
             <div class="button-group">
                 <button id="fullscreenBtn">Toggle Fullscreen</button>
                 <button id="savePNG">Save IMG</button>
