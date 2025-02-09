@@ -50,7 +50,7 @@ function setup() {
     select('#nodeCount').input(updateNodeCount);
     select('#bgSpeed').input(e => bgSpeed = parseFloat(e.target.value));
     select('#fullscreenBtn').mousePressed(toggleFullscreen);
-    select('#savePNG').mousePressed(savePNGFile);
+    select('#cameraButton').mousePressed(() => savePNGFile(true));
 
     // Add touch event listeners for pinch zoom
     canvas.elt.addEventListener('touchstart', handleTouchStart, false);
@@ -282,15 +282,40 @@ function toggleFullscreen() {
     fullscreen(!fs);
 }
 
-function savePNGFile() {
-    const isMobile = window.innerWidth <= 768 || (window.innerWidth / window.innerHeight < 9/16);
-    
-    if (isMobile) {
+function savePNGFile(fromCamera = false) {
+    if (fromCamera || (window.innerWidth <= 768 || (window.innerWidth / window.innerHeight < 9/16))) {
         // Get the current canvas and its exact content
         const mainCanvas = document.getElementById('defaultCanvas0');
-        const dataURL = mainCanvas.toDataURL('image/png');
         
-        // Create a temporary link to download the image
+        // Create a temporary canvas to add copyright
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = mainCanvas.width;
+        tempCanvas.height = mainCanvas.height;
+        const ctx = tempCanvas.getContext('2d');
+        
+        // Copy the main canvas content
+        ctx.drawImage(mainCanvas, 0, 0);
+        
+        // Add copyright text
+        ctx.font = '18px Arial';
+        ctx.fillStyle = select('#strokeColor').value();
+        ctx.textAlign = 'center';
+        ctx.fillText('Copyright 2025 DrBaph, UK. All rights reserved.', tempCanvas.width/2, tempCanvas.height - 20);
+        
+        // Add visual feedback for camera button
+        if (fromCamera) {
+            const cameraButton = select('#cameraButton').elt;
+            const bgColor = select('#bgColor').value();
+            const glowColor = bgColor === '#000000' ? 'white' : 'black';
+            cameraButton.classList.add('flash');
+            cameraButton.style.setProperty('--flash-color', glowColor);
+            setTimeout(() => {
+                cameraButton.classList.remove('flash');
+            }, 200);
+        }
+        
+        // Convert to data URL and download
+        const dataURL = tempCanvas.toDataURL('image/png');
         const link = document.createElement('a');
         link.download = 'drbaph-shape.png';
         link.href = dataURL;
